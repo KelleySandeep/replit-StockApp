@@ -54,9 +54,10 @@ def validate_symbol(symbol: str) -> bool:
         return False
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
-def get_stock_info(ticker) -> Dict[str, Any]:
+def get_stock_info(symbol: str) -> Dict[str, Any]:
     """Get stock information with caching."""
     try:
+        ticker = yf.Ticker(symbol)
         info = ticker.info
         return info if info else {}
     except Exception as e:

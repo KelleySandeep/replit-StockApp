@@ -84,7 +84,7 @@ if symbol:
                 st.stop()
             
             # Get stock info
-            info = get_stock_info(stock)
+            info = get_stock_info(symbol)
             
         # Display stock information header
         col1, col2, col3, col4 = st.columns(4)
@@ -212,7 +212,7 @@ if symbol:
             # Prepare data for display
             display_data = hist_data.copy()
             display_data = display_data.round(2)
-            display_data.index = pd.to_datetime(display_data.index).date
+            display_data.index = display_data.index.strftime('%Y-%m-%d')
             
             # Sort by date (most recent first)
             display_data = display_data.sort_index(ascending=False)
