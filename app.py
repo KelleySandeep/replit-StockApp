@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import io
-from utils import format_currency, format_number, get_stock_info, validate_symbol
+from utils import format_currency, format_number, get_stock_info, validate_symbol, get_stock_history_optimized
 from database import (
     init_database, store_stock_data, get_stored_stock_data,
     add_to_watchlist, get_watchlist, remove_from_watchlist,
@@ -100,7 +100,7 @@ with search_container:
 # Use the selected stock
 symbol = st.session_state.selected_stock
 
-# Time period selection
+# Time period selection with performance warnings
 period_options = {
     "1 Month": "1mo",
     "3 Months": "3mo",
@@ -111,11 +111,33 @@ period_options = {
     "Max": "max"
 }
 
+# Performance hints for period selection
+period_descriptions = {
+    "1 Month": "Fast loading",
+    "3 Months": "Fast loading", 
+    "6 Months": "Fast loading",
+    "1 Year": "Fast loading",
+    "2 Years": "Good performance",
+    "5 Years": "May take a moment",
+    "Max": "Optimized for large datasets"
+}
+
 selected_period = st.sidebar.selectbox(
     "Select Time Period",
     options=list(period_options.keys()),
-    index=3  # Default to 1 Year
+    index=3,  # Default to 1 Year
+    help="Choose time period. 'Max' shows all available historical data with smart optimization for performance."
 )
+
+# Show performance hint
+if selected_period in period_descriptions:
+    hint = period_descriptions[selected_period]
+    if selected_period == "Max":
+        st.sidebar.info(f"⚡ {hint}")
+    elif "May take" in hint:
+        st.sidebar.warning(f"⏳ {hint}")
+    else:
+        st.sidebar.success(f"🚀 {hint}")
 
 period = period_options[selected_period]
 
@@ -140,13 +162,18 @@ if symbol:
         st.stop()
     
     try:
-        # Show loading spinner
-        with st.spinner(f"Fetching data for {symbol}..."):
-            # Get stock data
-            stock = yf.Ticker(symbol)
+        # Show loading spinner with period-specific messages
+        loading_message = f"Fetching data for {symbol}..."
+        if period == "max":
+            loading_message = f"Fetching maximum historical data for {symbol}... (this may take a moment)"
+        
+        with st.spinner(loading_message):
+            # Get optimized historical data
+            hist_data = get_stock_history_optimized(symbol, period)
             
-            # Get historical data
-            hist_data = stock.history(period=period)
+            if hist_data is None:
+                st.error(f"Failed to fetch data for {symbol}. Please try again.")
+                st.stop()
             
             if hist_data.empty:
                 st.error(f"No data found for symbol {symbol}. Please check the symbol and try again.")
@@ -214,85 +241,115 @@ if symbol:
         tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Charts", "📋 Financial Data", "📈 Key Metrics", "👁️ Watchlist", "💼 Portfolio"])
         
         with tab1:
-            # Calculate technical indicators
-            if show_ma20 and len(hist_data) >= 20:
-                hist_data['MA20'] = hist_data['Close'].rolling(window=20).mean()
-            if show_ma50 and len(hist_data) >= 50:
-                hist_data['MA50'] = hist_data['Close'].rolling(window=50).mean()
+            # Optimize chart data for large datasets
+            chart_data = hist_data.copy()
             
-            # Create price chart
+            # For very large datasets, sample data for charts to improve performance
+            if len(chart_data) > 2000:
+                # Sample every nth point to reduce chart complexity
+                sample_rate = max(1, len(chart_data) // 1500)
+                chart_data = chart_data.iloc[::sample_rate]
+                st.info(f"📈 Chart optimized: showing every {sample_rate} data point(s) for better performance")
+            
+            # Calculate technical indicators on chart data
+            if show_ma20 and len(chart_data) >= 20:
+                chart_data['MA20'] = chart_data['Close'].rolling(window=20).mean()
+            if show_ma50 and len(chart_data) >= 50:
+                chart_data['MA50'] = chart_data['Close'].rolling(window=50).mean()
+            
+            # Create price chart with optimizations
             if chart_type == "Candlestick":
                 fig = go.Figure(data=[go.Candlestick(
-                    x=hist_data.index,
-                    open=hist_data['Open'],
-                    high=hist_data['High'],
-                    low=hist_data['Low'],
-                    close=hist_data['Close'],
-                    name=symbol
+                    x=chart_data.index,
+                    open=chart_data['Open'],
+                    high=chart_data['High'],
+                    low=chart_data['Low'],
+                    close=chart_data['Close'],
+                    name=symbol,
+                    hovertemplate='<b>%{x}</b><br>Open: %{open}<br>High: %{high}<br>Low: %{low}<br>Close: %{close}<extra></extra>'
                 )])
             elif chart_type == "Line Chart":
                 fig = go.Figure(data=[go.Scatter(
-                    x=hist_data.index,
-                    y=hist_data['Close'],
+                    x=chart_data.index,
+                    y=chart_data['Close'],
                     mode='lines',
                     name=f'{symbol} Close Price',
-                    line=dict(color='#00d4aa', width=2)
+                    line=dict(color='#00d4aa', width=2),
+                    hovertemplate='<b>%{x}</b><br>Price: $%{y:.2f}<extra></extra>'
                 )])
             else:  # Area Chart
                 fig = go.Figure(data=[go.Scatter(
-                    x=hist_data.index,
-                    y=hist_data['Close'],
+                    x=chart_data.index,
+                    y=chart_data['Close'],
                     fill='tonexty',
                     mode='lines',
                     name=f'{symbol} Close Price',
-                    line=dict(color='#00d4aa', width=2)
+                    line=dict(color='#00d4aa', width=2),
+                    hovertemplate='<b>%{x}</b><br>Price: $%{y:.2f}<extra></extra>'
                 )])
             
-            # Add moving averages
-            if show_ma20 and 'MA20' in hist_data.columns:
+            # Add moving averages using chart data
+            if show_ma20 and 'MA20' in chart_data.columns:
                 fig.add_trace(go.Scatter(
-                    x=hist_data.index,
-                    y=hist_data['MA20'],
+                    x=chart_data.index,
+                    y=chart_data['MA20'],
                     mode='lines',
                     name='20-Day MA',
-                    line=dict(color='orange', width=1, dash='dash')
+                    line=dict(color='orange', width=1, dash='dash'),
+                    hovertemplate='<b>%{x}</b><br>20-Day MA: $%{y:.2f}<extra></extra>'
                 ))
             
-            if show_ma50 and 'MA50' in hist_data.columns:
+            if show_ma50 and 'MA50' in chart_data.columns:
                 fig.add_trace(go.Scatter(
-                    x=hist_data.index,
-                    y=hist_data['MA50'],
+                    x=chart_data.index,
+                    y=chart_data['MA50'],
                     mode='lines',
                     name='50-Day MA',
-                    line=dict(color='red', width=1, dash='dash')
+                    line=dict(color='red', width=1, dash='dash'),
+                    hovertemplate='<b>%{x}</b><br>50-Day MA: $%{y:.2f}<extra></extra>'
                 ))
             
-            # Update layout
+            # Update layout with performance optimizations
             fig.update_layout(
                 title=f"{symbol} Stock Price - {selected_period}",
                 xaxis_title="Date",
                 yaxis_title="Price (USD)",
                 height=600,
                 showlegend=True,
-                hovermode='x unified'
+                hovermode='x unified',
+                # Performance optimizations
+                dragmode='pan',
+                selectdirection='horizontal'
             )
+            
+            # Optimize for large datasets
+            if len(chart_data) > 1000:
+                fig.update_layout(
+                    xaxis=dict(
+                        rangeslider=dict(visible=False),  # Disable rangeslider for performance
+                        type='date'
+                    )
+                )
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # Volume chart
+            # Volume chart (optimized)
             if show_volume:
+                # Use sampled chart data for volume too
                 vol_fig = go.Figure(data=[go.Bar(
-                    x=hist_data.index,
-                    y=hist_data['Volume'],
+                    x=chart_data.index,
+                    y=chart_data['Volume'],
                     name='Volume',
-                    marker_color='rgba(0, 212, 170, 0.6)'
+                    marker_color='rgba(0, 212, 170, 0.6)',
+                    hovertemplate='<b>%{x}</b><br>Volume: %{y:,}<extra></extra>'
                 )])
                 
                 vol_fig.update_layout(
                     title=f"{symbol} Trading Volume",
                     xaxis_title="Date",
                     yaxis_title="Volume",
-                    height=300
+                    height=300,
+                    dragmode='pan'
                 )
                 
                 st.plotly_chart(vol_fig, use_container_width=True)
@@ -300,13 +357,25 @@ if symbol:
         with tab2:
             st.subheader("Historical Price Data")
             
-            # Prepare data for display
+            # Show data summary for large datasets
+            total_rows = len(hist_data)
+            if total_rows > 500:
+                st.info(f"📊 Showing {total_rows:,} data points. Large datasets are optimized for better performance.")
+            
+            # Prepare data for display with pagination for large datasets
             display_data = hist_data.copy()
             display_data = display_data.round(2)
             display_data.index = display_data.index.strftime('%Y-%m-%d')
             
             # Sort by date (most recent first)
             display_data = display_data.sort_index(ascending=False)
+            
+            # For very large datasets, show only recent data by default with option to show more
+            if len(display_data) > 1000:
+                show_all = st.checkbox("Show all historical data (may be slow)", value=False)
+                if not show_all:
+                    display_data = display_data.head(1000)
+                    st.warning(f"Showing most recent 1,000 rows out of {total_rows:,} total. Check the box above to show all data.")
             
             # Display the data
             st.dataframe(

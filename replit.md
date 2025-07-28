@@ -148,3 +148,12 @@ Preferred communication style: Simple, everyday language.
 - **Smart Suggestions**: Click-to-select suggestions that update instantly
 - **Portfolio Search**: Autocomplete functionality when adding stocks to portfolio
 - **Enhanced UX**: Search shows suggestions, company names, and confidence scores for matches
+
+### Performance Optimizations (July 28, 2025)
+- **Smart Data Sampling**: For "max" period, intelligently samples data keeping recent data dense and older data sparse
+- **Chart Optimization**: Large datasets are automatically sampled for chart rendering to improve performance
+- **Enhanced Caching**: Extended cache times for historical data (1 hour) and stock info (10 minutes)
+- **Progressive Loading**: Shows loading messages specific to data size and expected wait time
+- **Data Pagination**: Large datasets show recent 1,000 rows by default with option to show all
+- **Chart Performance**: Disabled range slider and optimized hover templates for large datasets
+- **Memory Management**: Limits maximum data points to prevent memory issues while maintaining data quality
