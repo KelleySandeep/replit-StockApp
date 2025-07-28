@@ -676,71 +676,125 @@ if symbol:
             
             with col1:
                 st.write("**First Stock**")
+                
+                # Initialize session state for search
+                if 'compare_search1_input' not in st.session_state:
+                    st.session_state.compare_search1_input = ""
+                
                 compare_search1 = st.text_input(
-                    "Search First Stock",
-                    value=st.session_state.compare_stock1 if st.session_state.compare_stock1 else "",
-                    key="compare_search1",
-                    placeholder="Type symbol or company name..."
+                    "Type symbol or company name",
+                    value=st.session_state.compare_search1_input,
+                    key="compare_search1_text",
+                    placeholder="e.g., AAPL or Apple",
+                    on_change=None
                 )
                 
-                # Real-time suggestions for first stock
-                if compare_search1 and len(compare_search1) >= 1:
-                    suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=5)
-                    if suggestions1:
-                        st.write("**Quick Select:**")
-                        # Create a more compact suggestion layout
-                        for i, suggestion in enumerate(suggestions1):
-                            col_a, col_b = st.columns([4, 1])
-                            with col_a:
-                                st.caption(suggestion)
-                            with col_b:
-                                if st.button("Select", key=f"comp1_select_{i}"):
-                                    st.session_state.compare_stock1 = extract_symbol_from_suggestion(suggestion)
-                                    st.rerun()
+                # Update session state
+                if compare_search1 != st.session_state.compare_search1_input:
+                    st.session_state.compare_search1_input = compare_search1
                 
-                # Show current selection or validate input
-                if compare_search1:
-                    # Check if input is a valid symbol
+                # Show suggestions instantly without rerun
+                if compare_search1 and len(compare_search1.strip()) >= 1:
+                    # Check if direct symbol match first
                     potential_symbol = compare_search1.upper().strip()
-                    if validate_symbol(potential_symbol):
-                        st.session_state.compare_stock1 = potential_symbol
-                        st.success(f"✓ {potential_symbol} selected")
-                    elif st.session_state.compare_stock1:
-                        st.success(f"✓ {st.session_state.compare_stock1} selected")
+                    if len(potential_symbol) <= 5 and potential_symbol.isalpha():
+                        # Likely a symbol, validate it
+                        if validate_symbol(potential_symbol):
+                            st.session_state.compare_stock1 = potential_symbol
+                            st.success(f"✓ {potential_symbol} ready for comparison")
+                        else:
+                            # Show suggestions
+                            with st.container():
+                                suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=3)
+                                if suggestions1:
+                                    st.write("**Suggestions:**")
+                                    for i, suggestion in enumerate(suggestions1):
+                                        if st.button(f"📈 {suggestion}", key=f"comp1_btn_{i}", use_container_width=True):
+                                            symbol = extract_symbol_from_suggestion(suggestion)
+                                            st.session_state.compare_stock1 = symbol
+                                            st.session_state.compare_search1_input = symbol
+                                            st.rerun()
+                    else:
+                        # Company name search
+                        with st.container():
+                            suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=3)
+                            if suggestions1:
+                                st.write("**Suggestions:**")
+                                for i, suggestion in enumerate(suggestions1):
+                                    if st.button(f"📈 {suggestion}", key=f"comp1_btn_{i}", use_container_width=True):
+                                        symbol = extract_symbol_from_suggestion(suggestion)
+                                        st.session_state.compare_stock1 = symbol
+                                        st.session_state.compare_search1_input = symbol
+                                        st.rerun()
+                
+                # Show current selection
+                if st.session_state.compare_stock1 and st.session_state.compare_stock1 != compare_search1:
+                    st.success(f"✅ Selected: {st.session_state.compare_stock1}")
+                    if st.button("Change Stock 1", key="change_stock1"):
+                        st.session_state.compare_stock1 = ""
+                        st.session_state.compare_search1_input = ""
+                        st.rerun()
             
             with col2:
                 st.write("**Second Stock**")
+                
+                # Initialize session state for search
+                if 'compare_search2_input' not in st.session_state:
+                    st.session_state.compare_search2_input = ""
+                
                 compare_search2 = st.text_input(
-                    "Search Second Stock",
-                    value=st.session_state.compare_stock2 if st.session_state.compare_stock2 else "",
-                    key="compare_search2",
-                    placeholder="Type symbol or company name..."
+                    "Type symbol or company name",
+                    value=st.session_state.compare_search2_input,
+                    key="compare_search2_text",
+                    placeholder="e.g., MSFT or Microsoft",
+                    on_change=None
                 )
                 
-                # Real-time suggestions for second stock
-                if compare_search2 and len(compare_search2) >= 1:
-                    suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=5)
-                    if suggestions2:
-                        st.write("**Quick Select:**")
-                        # Create a more compact suggestion layout
-                        for i, suggestion in enumerate(suggestions2):
-                            col_c, col_d = st.columns([4, 1])
-                            with col_c:
-                                st.caption(suggestion)
-                            with col_d:
-                                if st.button("Select", key=f"comp2_select_{i}"):
-                                    st.session_state.compare_stock2 = extract_symbol_from_suggestion(suggestion)
-                                    st.rerun()
+                # Update session state
+                if compare_search2 != st.session_state.compare_search2_input:
+                    st.session_state.compare_search2_input = compare_search2
                 
-                # Show current selection or validate input
-                if compare_search2:
-                    # Check if input is a valid symbol
+                # Show suggestions instantly without rerun
+                if compare_search2 and len(compare_search2.strip()) >= 1:
+                    # Check if direct symbol match first
                     potential_symbol = compare_search2.upper().strip()
-                    if validate_symbol(potential_symbol):
-                        st.session_state.compare_stock2 = potential_symbol
-                        st.success(f"✓ {potential_symbol} selected")
-                    elif st.session_state.compare_stock2:
-                        st.success(f"✓ {st.session_state.compare_stock2} selected")
+                    if len(potential_symbol) <= 5 and potential_symbol.isalpha():
+                        # Likely a symbol, validate it
+                        if validate_symbol(potential_symbol):
+                            st.session_state.compare_stock2 = potential_symbol
+                            st.success(f"✓ {potential_symbol} ready for comparison")
+                        else:
+                            # Show suggestions
+                            with st.container():
+                                suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=3)
+                                if suggestions2:
+                                    st.write("**Suggestions:**")
+                                    for i, suggestion in enumerate(suggestions2):
+                                        if st.button(f"📈 {suggestion}", key=f"comp2_btn_{i}", use_container_width=True):
+                                            symbol = extract_symbol_from_suggestion(suggestion)
+                                            st.session_state.compare_stock2 = symbol
+                                            st.session_state.compare_search2_input = symbol
+                                            st.rerun()
+                    else:
+                        # Company name search
+                        with st.container():
+                            suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=3)
+                            if suggestions2:
+                                st.write("**Suggestions:**")
+                                for i, suggestion in enumerate(suggestions2):
+                                    if st.button(f"📈 {suggestion}", key=f"comp2_btn_{i}", use_container_width=True):
+                                        symbol = extract_symbol_from_suggestion(suggestion)
+                                        st.session_state.compare_stock2 = symbol
+                                        st.session_state.compare_search2_input = symbol
+                                        st.rerun()
+                
+                # Show current selection
+                if st.session_state.compare_stock2 and st.session_state.compare_stock2 != compare_search2:
+                    st.success(f"✅ Selected: {st.session_state.compare_stock2}")
+                    if st.button("Change Stock 2", key="change_stock2"):
+                        st.session_state.compare_stock2 = ""
+                        st.session_state.compare_search2_input = ""
+                        st.rerun()
             
             # Duration selection for comparison
             st.write("**Comparison Period**")
@@ -910,9 +964,11 @@ if symbol:
                 # Clear selections button
                 if st.session_state.compare_stock1 or st.session_state.compare_stock2:
                     st.divider()
-                    if st.button("🗑️ Clear Selections", type="secondary"):
+                    if st.button("🗑️ Clear All Selections", type="secondary"):
                         st.session_state.compare_stock1 = ""
                         st.session_state.compare_stock2 = ""
+                        st.session_state.compare_search1_input = ""
+                        st.session_state.compare_search2_input = ""
                         st.rerun()
     
     except Exception as e:
