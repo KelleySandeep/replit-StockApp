@@ -714,6 +714,24 @@ if symbol:
                 if st.session_state.compare_stock2:
                     st.success(f"Selected: {st.session_state.compare_stock2}")
             
+            # Duration selection for comparison
+            st.write("**Comparison Period**")
+            compare_period = st.selectbox(
+                "Select time period for comparison",
+                options=["1mo", "3mo", "6mo", "1y", "2y", "5y", "max"],
+                index=3,  # Default to 1y
+                format_func=lambda x: {
+                    "1mo": "1 Month",
+                    "3mo": "3 Months", 
+                    "6mo": "6 Months",
+                    "1y": "1 Year",
+                    "2y": "2 Years",
+                    "5y": "5 Years",
+                    "max": "Maximum Available"
+                }[x],
+                key="compare_period"
+            )
+            
             # Compare button and results
             if st.session_state.compare_stock1 and st.session_state.compare_stock2:
                 if st.button("🔍 Compare Stocks", type="primary", use_container_width=True):
@@ -721,10 +739,10 @@ if symbol:
                     stock2 = st.session_state.compare_stock2
                     
                     try:
-                        with st.spinner(f"Comparing {stock1} vs {stock2}..."):
+                        with st.spinner(f"Comparing {stock1} vs {stock2} over {compare_period}..."):
                             # Get data for both stocks
-                            hist1 = get_stock_history_optimized(stock1, "1y")
-                            hist2 = get_stock_history_optimized(stock2, "1y")
+                            hist1 = get_stock_history_optimized(stock1, compare_period)
+                            hist2 = get_stock_history_optimized(stock2, compare_period)
                             info1 = get_stock_info(stock1)
                             info2 = get_stock_info(stock2)
                             
@@ -765,7 +783,16 @@ if symbol:
                                     st.metric("52W Low", format_currency(info2.get('fiftyTwoWeekLow', 0)))
                                 
                                 # Comparison chart
-                                st.subheader("Price Comparison (1 Year)")
+                                period_labels = {
+                                    "1mo": "1 Month",
+                                    "3mo": "3 Months", 
+                                    "6mo": "6 Months",
+                                    "1y": "1 Year",
+                                    "2y": "2 Years",
+                                    "5y": "5 Years",
+                                    "max": "Maximum Available"
+                                }
+                                st.subheader(f"Price Comparison ({period_labels[compare_period]})")
                                 
                                 # Normalize prices to percentage change for better comparison
                                 norm1 = ((hist1['Close'] / hist1['Close'].iloc[0]) - 1) * 100
@@ -790,7 +817,7 @@ if symbol:
                                 ))
                                 
                                 comp_fig.update_layout(
-                                    title=f"{stock1} vs {stock2} - Normalized Performance",
+                                    title=f"{stock1} vs {stock2} - Normalized Performance ({period_labels[compare_period]})",
                                     xaxis_title="Date",
                                     yaxis_title="Percentage Change (%)",
                                     height=500,
@@ -803,7 +830,7 @@ if symbol:
                                 perf1 = ((hist1['Close'].iloc[-1] / hist1['Close'].iloc[0]) - 1) * 100
                                 perf2 = ((hist2['Close'].iloc[-1] / hist2['Close'].iloc[0]) - 1) * 100
                                 
-                                st.subheader("Performance Summary (1 Year)")
+                                st.subheader(f"Performance Summary ({period_labels[compare_period]})")
                                 
                                 summary_col1, summary_col2, summary_col3 = st.columns(3)
                                 
