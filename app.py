@@ -678,41 +678,69 @@ if symbol:
                 st.write("**First Stock**")
                 compare_search1 = st.text_input(
                     "Search First Stock",
-                    value="",
+                    value=st.session_state.compare_stock1 if st.session_state.compare_stock1 else "",
                     key="compare_search1",
-                    placeholder="Type to search..."
+                    placeholder="Type symbol or company name..."
                 )
                 
-                if compare_search1:
-                    suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=3)
+                # Real-time suggestions for first stock
+                if compare_search1 and len(compare_search1) >= 1:
+                    suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=5)
                     if suggestions1:
+                        st.write("**Quick Select:**")
+                        # Create a more compact suggestion layout
                         for i, suggestion in enumerate(suggestions1):
-                            if st.button(suggestion, key=f"comp1_sugg_{i}"):
-                                st.session_state.compare_stock1 = extract_symbol_from_suggestion(suggestion)
-                                st.rerun()
+                            col_a, col_b = st.columns([4, 1])
+                            with col_a:
+                                st.caption(suggestion)
+                            with col_b:
+                                if st.button("Select", key=f"comp1_select_{i}"):
+                                    st.session_state.compare_stock1 = extract_symbol_from_suggestion(suggestion)
+                                    st.rerun()
                 
-                if st.session_state.compare_stock1:
-                    st.success(f"Selected: {st.session_state.compare_stock1}")
+                # Show current selection or validate input
+                if compare_search1:
+                    # Check if input is a valid symbol
+                    potential_symbol = compare_search1.upper().strip()
+                    if validate_symbol(potential_symbol):
+                        st.session_state.compare_stock1 = potential_symbol
+                        st.success(f"✓ {potential_symbol} selected")
+                    elif st.session_state.compare_stock1:
+                        st.success(f"✓ {st.session_state.compare_stock1} selected")
             
             with col2:
                 st.write("**Second Stock**")
                 compare_search2 = st.text_input(
                     "Search Second Stock",
-                    value="",
+                    value=st.session_state.compare_stock2 if st.session_state.compare_stock2 else "",
                     key="compare_search2",
-                    placeholder="Type to search..."
+                    placeholder="Type symbol or company name..."
                 )
                 
-                if compare_search2:
-                    suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=3)
+                # Real-time suggestions for second stock
+                if compare_search2 and len(compare_search2) >= 1:
+                    suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=5)
                     if suggestions2:
+                        st.write("**Quick Select:**")
+                        # Create a more compact suggestion layout
                         for i, suggestion in enumerate(suggestions2):
-                            if st.button(suggestion, key=f"comp2_sugg_{i}"):
-                                st.session_state.compare_stock2 = extract_symbol_from_suggestion(suggestion)
-                                st.rerun()
+                            col_c, col_d = st.columns([4, 1])
+                            with col_c:
+                                st.caption(suggestion)
+                            with col_d:
+                                if st.button("Select", key=f"comp2_select_{i}"):
+                                    st.session_state.compare_stock2 = extract_symbol_from_suggestion(suggestion)
+                                    st.rerun()
                 
-                if st.session_state.compare_stock2:
-                    st.success(f"Selected: {st.session_state.compare_stock2}")
+                # Show current selection or validate input
+                if compare_search2:
+                    # Check if input is a valid symbol
+                    potential_symbol = compare_search2.upper().strip()
+                    if validate_symbol(potential_symbol):
+                        st.session_state.compare_stock2 = potential_symbol
+                        st.success(f"✓ {potential_symbol} selected")
+                    elif st.session_state.compare_stock2:
+                        st.success(f"✓ {st.session_state.compare_stock2} selected")
             
             # Duration selection for comparison
             st.write("**Comparison Period**")
@@ -852,22 +880,40 @@ if symbol:
                         st.error(f"Error during comparison: {str(e)}")
             
             else:
-                st.info("Select two stocks above to compare their performance.")
+                st.info("Start typing in the search boxes above to find and select stocks for comparison.")
                 
                 # Quick comparison suggestions from history
                 history_df = get_stock_history()
                 if not history_df.empty and len(history_df) >= 2:
-                    st.write("**Quick compare from your history:**")
-                    recent_stocks = history_df.head(4)['Symbol'].tolist()
+                    st.divider()
+                    st.write("**Quick compare from your recent history:**")
+                    recent_stocks = history_df.head(6)['Symbol'].tolist()
                     
                     if len(recent_stocks) >= 2:
-                        for i in range(0, len(recent_stocks)-1, 2):
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                if st.button(f"Compare {recent_stocks[i]} vs {recent_stocks[i+1]}", key=f"quick_comp_{i}"):
-                                    st.session_state.compare_stock1 = recent_stocks[i]
-                                    st.session_state.compare_stock2 = recent_stocks[i+1]
+                        # Create quick comparison pairs
+                        quick_pairs = []
+                        for i in range(len(recent_stocks)-1):
+                            for j in range(i+1, min(i+3, len(recent_stocks))):
+                                quick_pairs.append((recent_stocks[i], recent_stocks[j]))
+                        
+                        # Show first 3 pairs
+                        for i, (stock1, stock2) in enumerate(quick_pairs[:3]):
+                            col_quick1, col_quick2 = st.columns([3, 1])
+                            with col_quick1:
+                                st.caption(f"{stock1} vs {stock2}")
+                            with col_quick2:
+                                if st.button("Compare", key=f"quick_comp_{i}"):
+                                    st.session_state.compare_stock1 = stock1
+                                    st.session_state.compare_stock2 = stock2
                                     st.rerun()
+                
+                # Clear selections button
+                if st.session_state.compare_stock1 or st.session_state.compare_stock2:
+                    st.divider()
+                    if st.button("🗑️ Clear Selections", type="secondary"):
+                        st.session_state.compare_stock1 = ""
+                        st.session_state.compare_stock2 = ""
+                        st.rerun()
     
     except Exception as e:
         st.error(f"❌ Error fetching data for {symbol}: {str(e)}")
