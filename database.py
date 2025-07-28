@@ -57,6 +57,17 @@ class Portfolio(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class StockHistory(Base):
+    __tablename__ = "stock_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String(10), index=True)
+    company_name = Column(String(200))
+    last_viewed = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    view_count = Column(Integer, default=1)
+    last_price = Column(Float, nullable=True)
+    time_period = Column(String(10), nullable=True)
+
 # Database functions
 @st.cache_resource
 def init_database():
@@ -274,6 +285,80 @@ def update_portfolio_prices(symbol: str, current_price: float):
     except Exception as e:
         db.rollback()
         st.error(f"Error updating portfolio prices: {str(e)}")
+        return False
+    finally:
+        db.close()
+
+def add_to_history(symbol: str, company_name: str, current_price: float = None, time_period: str = None):
+    """Add or update stock in viewing history."""
+    SessionLocal = get_session_local()
+    db = SessionLocal()
+    try:
+        # Check if stock already in history
+        existing = db.query(StockHistory).filter(StockHistory.symbol == symbol).first()
+        
+        if existing:
+            # Update existing entry
+            existing.last_viewed = datetime.utcnow()
+            existing.view_count += 1
+            existing.last_price = current_price
+            existing.time_period = time_period
+            if company_name:
+                existing.company_name = company_name
+        else:
+            # Create new entry
+            history_entry = StockHistory(
+                symbol=symbol,
+                company_name=company_name or symbol,
+                last_price=current_price,
+                time_period=time_period
+            )
+            db.add(history_entry)
+        
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        return False
+    finally:
+        db.close()
+
+def get_stock_history():
+    """Get viewing history of stocks."""
+    SessionLocal = get_session_local()
+    db = SessionLocal()
+    try:
+        history = db.query(StockHistory).order_by(StockHistory.last_viewed.desc()).limit(50).all()
+        
+        data = []
+        for item in history:
+            data.append({
+                'Symbol': item.symbol,
+                'Company': item.company_name,
+                'Last Viewed': item.last_viewed.strftime('%Y-%m-%d %H:%M'),
+                'Views': item.view_count,
+                'Last Price': item.last_price or 0,
+                'Period': item.time_period or 'N/A',
+                'ID': item.id
+            })
+        
+        return pd.DataFrame(data)
+    except Exception as e:
+        st.error(f"Error retrieving history: {str(e)}")
+        return pd.DataFrame()
+    finally:
+        db.close()
+
+def clear_stock_history():
+    """Clear all viewing history."""
+    SessionLocal = get_session_local()
+    db = SessionLocal()
+    try:
+        db.query(StockHistory).delete()
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
         return False
     finally:
         db.close()

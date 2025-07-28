@@ -11,7 +11,8 @@ from utils import format_currency, format_number, get_stock_info, validate_symbo
 from database import (
     init_database, store_stock_data, get_stored_stock_data,
     add_to_watchlist, get_watchlist, remove_from_watchlist,
-    add_to_portfolio, get_portfolio, update_portfolio_prices
+    add_to_portfolio, get_portfolio, update_portfolio_prices,
+    add_to_history, get_stock_history, clear_stock_history
 )
 from stock_symbols import search_stocks, get_symbol_suggestions, extract_symbol_from_suggestion
 
@@ -182,6 +183,10 @@ if symbol:
             # Get stock info
             info = get_stock_info(symbol)
             
+            # Add to history
+            current_price = hist_data['Close'].iloc[-1] if not hist_data.empty else None
+            add_to_history(symbol, info.get('longName', symbol), current_price, period)
+            
         # Display stock information header
         col1, col2, col3, col4 = st.columns(4)
         
@@ -238,7 +243,7 @@ if symbol:
             update_portfolio_prices(symbol, current_price)
         
         # Create tabs for different views
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Charts", "📋 Financial Data", "📈 Key Metrics", "👁️ Watchlist", "💼 Portfolio"])
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📊 Charts", "📋 Financial Data", "📈 Key Metrics", "👁️ Watchlist", "💼 Portfolio", "🕐 History", "⚖️ Compare"])
         
         with tab1:
             # Optimize chart data for large datasets
@@ -594,6 +599,248 @@ if symbol:
                 )
             else:
                 st.info("Your portfolio is empty. Add stocks using the form above.")
+        
+        with tab6:
+            st.subheader("🕐 Stock Viewing History")
+            
+            # Get viewing history
+            history_df = get_stock_history()
+            
+            if not history_df.empty:
+                # Add action buttons for history items
+                col1, col2 = st.columns([1, 1])
+                
+                with col1:
+                    st.write(f"**Total stocks viewed:** {len(history_df)}")
+                
+                with col2:
+                    if st.button("🗑️ Clear History", type="secondary"):
+                        if clear_stock_history():
+                            st.success("History cleared!")
+                            st.rerun()
+                
+                st.divider()
+                
+                # Display history with quick action buttons
+                for idx, row in history_df.head(10).iterrows():
+                    col1, col2, col3 = st.columns([3, 1, 1])
+                    
+                    with col1:
+                        st.write(f"**{row['Symbol']}** - {row['Company']}")
+                        st.caption(f"Last viewed: {row['Last Viewed']} • Views: {row['Views']} • Period: {row['Period']}")
+                        if row['Last Price'] > 0:
+                            st.caption(f"Last price: ${row['Last Price']:.2f}")
+                    
+                    with col2:
+                        if st.button(f"View {row['Symbol']}", key=f"history_view_{row['ID']}"):
+                            st.session_state.selected_stock = row['Symbol']
+                            st.rerun()
+                    
+                    with col3:
+                        if st.button(f"Compare", key=f"history_compare_{row['ID']}"):
+                            if 'compare_stock1' not in st.session_state:
+                                st.session_state.compare_stock1 = row['Symbol']
+                                st.success(f"Selected {row['Symbol']} for comparison")
+                            else:
+                                st.session_state.compare_stock2 = row['Symbol']
+                                st.success(f"Comparing {st.session_state.compare_stock1} vs {row['Symbol']}")
+                
+                st.divider()
+                
+                # Full history table
+                display_history = history_df.copy()
+                if 'Last Price' in display_history.columns:
+                    display_history['Last Price'] = display_history['Last Price'].apply(
+                        lambda x: f"${x:.2f}" if x > 0 else "N/A"
+                    )
+                
+                st.dataframe(
+                    display_history.drop('ID', axis=1),
+                    use_container_width=True,
+                    height=300
+                )
+            else:
+                st.info("No viewing history yet. Start analyzing stocks to build your history!")
+        
+        with tab7:
+            st.subheader("⚖️ Stock Comparison")
+            
+            # Initialize comparison stocks in session state
+            if 'compare_stock1' not in st.session_state:
+                st.session_state.compare_stock1 = ""
+            if 'compare_stock2' not in st.session_state:
+                st.session_state.compare_stock2 = ""
+            
+            # Stock selection for comparison
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**First Stock**")
+                compare_search1 = st.text_input(
+                    "Search First Stock",
+                    value="",
+                    key="compare_search1",
+                    placeholder="Type to search..."
+                )
+                
+                if compare_search1:
+                    suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=3)
+                    if suggestions1:
+                        for i, suggestion in enumerate(suggestions1):
+                            if st.button(suggestion, key=f"comp1_sugg_{i}"):
+                                st.session_state.compare_stock1 = extract_symbol_from_suggestion(suggestion)
+                                st.rerun()
+                
+                if st.session_state.compare_stock1:
+                    st.success(f"Selected: {st.session_state.compare_stock1}")
+            
+            with col2:
+                st.write("**Second Stock**")
+                compare_search2 = st.text_input(
+                    "Search Second Stock",
+                    value="",
+                    key="compare_search2",
+                    placeholder="Type to search..."
+                )
+                
+                if compare_search2:
+                    suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=3)
+                    if suggestions2:
+                        for i, suggestion in enumerate(suggestions2):
+                            if st.button(suggestion, key=f"comp2_sugg_{i}"):
+                                st.session_state.compare_stock2 = extract_symbol_from_suggestion(suggestion)
+                                st.rerun()
+                
+                if st.session_state.compare_stock2:
+                    st.success(f"Selected: {st.session_state.compare_stock2}")
+            
+            # Compare button and results
+            if st.session_state.compare_stock1 and st.session_state.compare_stock2:
+                if st.button("🔍 Compare Stocks", type="primary", use_container_width=True):
+                    stock1 = st.session_state.compare_stock1
+                    stock2 = st.session_state.compare_stock2
+                    
+                    try:
+                        with st.spinner(f"Comparing {stock1} vs {stock2}..."):
+                            # Get data for both stocks
+                            hist1 = get_stock_history_optimized(stock1, "1y")
+                            hist2 = get_stock_history_optimized(stock2, "1y")
+                            info1 = get_stock_info(stock1)
+                            info2 = get_stock_info(stock2)
+                            
+                            if hist1 is not None and hist2 is not None and not hist1.empty and not hist2.empty:
+                                # Comparison metrics
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.write(f"**{stock1} - {info1.get('longName', 'N/A')}**")
+                                    current1 = hist1['Close'].iloc[-1]
+                                    prev1 = hist1['Close'].iloc[-2] if len(hist1) > 1 else current1
+                                    change1 = ((current1 - prev1) / prev1) * 100
+                                    
+                                    st.metric(
+                                        "Current Price",
+                                        format_currency(current1),
+                                        f"{change1:+.2f}%"
+                                    )
+                                    st.metric("Market Cap", format_number(info1.get('marketCap', 0)))
+                                    st.metric("P/E Ratio", f"{info1.get('trailingPE', 0):.2f}" if info1.get('trailingPE') else "N/A")
+                                    st.metric("52W High", format_currency(info1.get('fiftyTwoWeekHigh', 0)))
+                                    st.metric("52W Low", format_currency(info1.get('fiftyTwoWeekLow', 0)))
+                                
+                                with col2:
+                                    st.write(f"**{stock2} - {info2.get('longName', 'N/A')}**")
+                                    current2 = hist2['Close'].iloc[-1]
+                                    prev2 = hist2['Close'].iloc[-2] if len(hist2) > 1 else current2
+                                    change2 = ((current2 - prev2) / prev2) * 100
+                                    
+                                    st.metric(
+                                        "Current Price",
+                                        format_currency(current2),
+                                        f"{change2:+.2f}%"
+                                    )
+                                    st.metric("Market Cap", format_number(info2.get('marketCap', 0)))
+                                    st.metric("P/E Ratio", f"{info2.get('trailingPE', 0):.2f}" if info2.get('trailingPE') else "N/A")
+                                    st.metric("52W High", format_currency(info2.get('fiftyTwoWeekHigh', 0)))
+                                    st.metric("52W Low", format_currency(info2.get('fiftyTwoWeekLow', 0)))
+                                
+                                # Comparison chart
+                                st.subheader("Price Comparison (1 Year)")
+                                
+                                # Normalize prices to percentage change for better comparison
+                                norm1 = ((hist1['Close'] / hist1['Close'].iloc[0]) - 1) * 100
+                                norm2 = ((hist2['Close'] / hist2['Close'].iloc[0]) - 1) * 100
+                                
+                                comp_fig = go.Figure()
+                                
+                                comp_fig.add_trace(go.Scatter(
+                                    x=hist1.index,
+                                    y=norm1,
+                                    mode='lines',
+                                    name=f'{stock1}',
+                                    line=dict(color='#00d4aa', width=2)
+                                ))
+                                
+                                comp_fig.add_trace(go.Scatter(
+                                    x=hist2.index,
+                                    y=norm2,
+                                    mode='lines',
+                                    name=f'{stock2}',
+                                    line=dict(color='#ff6b6b', width=2)
+                                ))
+                                
+                                comp_fig.update_layout(
+                                    title=f"{stock1} vs {stock2} - Normalized Performance",
+                                    xaxis_title="Date",
+                                    yaxis_title="Percentage Change (%)",
+                                    height=500,
+                                    hovermode='x unified'
+                                )
+                                
+                                st.plotly_chart(comp_fig, use_container_width=True)
+                                
+                                # Performance summary
+                                perf1 = ((hist1['Close'].iloc[-1] / hist1['Close'].iloc[0]) - 1) * 100
+                                perf2 = ((hist2['Close'].iloc[-1] / hist2['Close'].iloc[0]) - 1) * 100
+                                
+                                st.subheader("Performance Summary (1 Year)")
+                                
+                                summary_col1, summary_col2, summary_col3 = st.columns(3)
+                                
+                                with summary_col1:
+                                    st.metric(f"{stock1} Return", f"{perf1:+.2f}%")
+                                
+                                with summary_col2:
+                                    st.metric(f"{stock2} Return", f"{perf2:+.2f}%")
+                                
+                                with summary_col3:
+                                    diff = perf1 - perf2
+                                    winner = stock1 if diff > 0 else stock2
+                                    st.metric("Difference", f"{abs(diff):.2f}%", f"{winner} outperformed")
+                                
+                            else:
+                                st.error("Unable to fetch data for comparison. Please check the stock symbols.")
+                    
+                    except Exception as e:
+                        st.error(f"Error during comparison: {str(e)}")
+            
+            else:
+                st.info("Select two stocks above to compare their performance.")
+                
+                # Quick comparison suggestions from history
+                history_df = get_stock_history()
+                if not history_df.empty and len(history_df) >= 2:
+                    st.write("**Quick compare from your history:**")
+                    recent_stocks = history_df.head(4)['Symbol'].tolist()
+                    
+                    if len(recent_stocks) >= 2:
+                        for i in range(0, len(recent_stocks)-1, 2):
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button(f"Compare {recent_stocks[i]} vs {recent_stocks[i+1]}", key=f"quick_comp_{i}"):
+                                    st.session_state.compare_stock1 = recent_stocks[i]
+                                    st.session_state.compare_stock2 = recent_stocks[i+1]
+                                    st.rerun()
     
     except Exception as e:
         st.error(f"❌ Error fetching data for {symbol}: {str(e)}")

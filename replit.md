@@ -157,3 +157,12 @@ Preferred communication style: Simple, everyday language.
 - **Data Pagination**: Large datasets show recent 1,000 rows by default with option to show all
 - **Chart Performance**: Disabled range slider and optimized hover templates for large datasets
 - **Memory Management**: Limits maximum data points to prevent memory issues while maintaining data quality
+
+### History & Comparison Features (July 28, 2025)
+- **Stock Viewing History**: Automatically tracks all previously analyzed stocks with timestamps and view counts
+- **Quick Actions**: One-click buttons to re-analyze stocks from history or add them to comparison
+- **Stock Comparison Tool**: Side-by-side analysis of two stocks with normalized performance charts
+- **Performance Metrics**: Compare key financial metrics, returns, and visual performance over 1-year period
+- **Quick Compare**: Fast comparison selection from recently viewed stocks in history
+- **History Management**: View detailed history table with price tracking and clear history option
+- **Intelligent Tracking**: Stores last price, time period used, and company names for comprehensive history
