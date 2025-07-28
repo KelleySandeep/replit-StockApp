@@ -317,8 +317,7 @@ if symbol:
                 showlegend=True,
                 hovermode='x unified',
                 # Performance optimizations
-                dragmode='pan',
-                selectdirection='horizontal'
+                dragmode='pan'
             )
             
             # Optimize for large datasets
