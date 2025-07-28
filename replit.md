@@ -21,6 +21,8 @@ Preferred communication style: Simple, everyday language.
 - **Data Processing**: Pandas and NumPy for data manipulation and numerical operations
 - **API Integration**: Yahoo Finance (yfinance) for real-time and historical stock data
 - **Visualization**: Plotly for interactive charts and graphs
+- **Database**: PostgreSQL with SQLAlchemy ORM for data persistence
+- **Caching**: Streamlit caching for performance optimization
 
 ### Data Visualization
 - **Charting Library**: Plotly Graph Objects and Plotly Express
@@ -35,6 +37,14 @@ Preferred communication style: Simple, everyday language.
 - Stock symbol input validation and processing
 - Time period selection functionality
 - Integration point for data fetching and visualization
+- Database-integrated watchlist and portfolio management
+
+### Database Layer (`database.py`)
+- **PostgreSQL Integration**: SQLAlchemy models for stock data, watchlist, and portfolio
+- **Data Persistence**: Store historical stock data for offline analysis
+- **Watchlist Management**: Add, view, and remove stocks from personal watchlist
+- **Portfolio Tracking**: Add holdings and track performance with real-time updates
+- **Session Management**: Proper database connection handling with error recovery
 
 ### Utility Functions (`utils.py`)
 - **Currency Formatting**: Intelligent formatting of financial values with appropriate suffixes (K, M, B, T)
@@ -46,9 +56,11 @@ Preferred communication style: Simple, everyday language.
 1. **User Input**: User enters stock symbol and selects time period via sidebar
 2. **Validation**: Symbol is validated using Yahoo Finance API
 3. **Data Fetching**: Historical and real-time stock data retrieved from Yahoo Finance
-4. **Processing**: Raw data processed and formatted using utility functions
-5. **Visualization**: Processed data rendered as interactive charts using Plotly
-6. **Display**: Results presented in the main dashboard area
+4. **Database Integration**: Option to store historical data for offline analysis
+5. **Processing**: Raw data processed and formatted using utility functions
+6. **Visualization**: Processed data rendered as interactive charts using Plotly
+7. **Personal Management**: Add stocks to watchlist or portfolio with database persistence
+8. **Display**: Results presented in the main dashboard with personalized tracking
 
 ## External Dependencies
 
@@ -58,6 +70,8 @@ Preferred communication style: Simple, everyday language.
 - **plotly**: Interactive visualization library
 - **pandas**: Data manipulation and analysis
 - **numpy**: Numerical computing
+- **sqlalchemy**: Database ORM for PostgreSQL integration
+- **psycopg2-binary**: PostgreSQL adapter for Python
 
 ### Data Sources
 - **Yahoo Finance**: Primary data source for stock prices, financial metrics, and company information
@@ -102,5 +116,27 @@ Preferred communication style: Simple, everyday language.
 
 ### Code Organization
 - Separation of concerns with utility functions in dedicated module
+- Database layer abstraction for clean data persistence
 - Modular design for easy extension and maintenance
 - Clear naming conventions and type hints for better code quality
+
+## Recent Changes (July 28, 2025)
+
+### Database Integration
+- Added PostgreSQL database with SQLAlchemy ORM
+- Implemented three main data models: StockData, Watchlist, Portfolio
+- Created database management functions with proper error handling
+- Added session management with automatic connection cleanup
+
+### Enhanced Features
+- **Watchlist Management**: Users can save stocks for quick access and monitoring
+- **Portfolio Tracking**: Add stock holdings with purchase details and track performance
+- **Data Persistence**: Store historical stock data for offline analysis
+- **Real-time Updates**: Portfolio values update automatically with current stock prices
+- **Enhanced UI**: Added 5 tabs including new Watchlist and Portfolio sections
+
+### Technical Improvements
+- Fixed caching issues with stock data retrieval
+- Improved error handling for database operations
+- Added comprehensive data validation and user feedback
+- Implemented CSV export functionality for portfolio data
