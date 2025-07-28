@@ -265,8 +265,7 @@ if symbol:
                     high=chart_data['High'],
                     low=chart_data['Low'],
                     close=chart_data['Close'],
-                    name=symbol,
-                    hovertemplate='<b>%{x}</b><br>Open: %{open}<br>High: %{high}<br>Low: %{low}<br>Close: %{close}<extra></extra>'
+                    name=symbol
                 )])
             elif chart_type == "Line Chart":
                 fig = go.Figure(data=[go.Scatter(
