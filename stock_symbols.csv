@@ -1,0 +1,165 @@
+Symbol,Company
+AAPL,Apple Inc.
+GOOGL,Alphabet Inc. Class A
+GOOG,Alphabet Inc. Class C
+MSFT,Microsoft Corporation
+AMZN,Amazon.com Inc.
+TSLA,Tesla Inc.
+META,Meta Platforms Inc.
+NVDA,NVIDIA Corporation
+NFLX,Netflix Inc.
+ADBE,Adobe Inc.
+CRM,Salesforce Inc.
+ORCL,Oracle Corporation
+CSCO,Cisco Systems Inc.
+INTC,Intel Corporation
+AMD,Advanced Micro Devices Inc.
+PYPL,PayPal Holdings Inc.
+UBER,Uber Technologies Inc.
+SNAP,Snap Inc.
+TWTR,Twitter Inc.
+SPOT,Spotify Technology S.A.
+JPM,JPMorgan Chase & Co.
+BAC,Bank of America Corporation
+WFC,Wells Fargo & Company
+GS,The Goldman Sachs Group Inc.
+MS,Morgan Stanley
+C,Citigroup Inc.
+V,Visa Inc.
+MA,Mastercard Incorporated
+AXP,American Express Company
+BRK.A,Berkshire Hathaway Inc. Class A
+BRK.B,Berkshire Hathaway Inc. Class B
+JNJ,Johnson & Johnson
+PFE,Pfizer Inc.
+UNH,UnitedHealth Group Incorporated
+ABBV,AbbVie Inc.
+MRK,Merck & Co. Inc.
+BMY,Bristol Myers Squibb Company
+LLY,Eli Lilly and Company
+AMGN,Amgen Inc.
+GILD,Gilead Sciences Inc.
+BIIB,Biogen Inc.
+WMT,Walmart Inc.
+HD,The Home Depot Inc.
+MCD,McDonald's Corporation
+KO,The Coca-Cola Company
+PEP,PepsiCo Inc.
+NKE,NIKE Inc.
+SBUX,Starbucks Corporation
+TGT,Target Corporation
+LOW,Lowe's Companies Inc.
+COST,Costco Wholesale Corporation
+XOM,Exxon Mobil Corporation
+CVX,Chevron Corporation
+COP,ConocoPhillips
+SLB,Schlumberger Limited
+EOG,EOG Resources Inc.
+BA,The Boeing Company
+CAT,Caterpillar Inc.
+GE,General Electric Company
+MMM,3M Company
+UPS,United Parcel Service Inc.
+FDX,FedEx Corporation
+SPY,SPDR S&P 500 ETF Trust
+QQQ,Invesco QQQ Trust
+VTI,Vanguard Total Stock Market ETF
+IWM,iShares Russell 2000 ETF
+EFA,iShares MSCI EAFE ETF
+GLD,SPDR Gold Shares
+DIS,The Walt Disney Company
+VZ,Verizon Communications Inc.
+T,AT&T Inc.
+CMCSA,Comcast Corporation
+IBM,International Business Machines Corporation
+F,Ford Motor Company
+GM,General Motors Company
+DAL,Delta Air Lines Inc.
+AAL,American Airlines Group Inc.
+CCL,Carnival Corporation & plc
+ROKU,Roku Inc.
+ZM,Zoom Video Communications Inc.
+DOCU,DocuSign Inc.
+SHOP,Shopify Inc.
+SQ,Block Inc.
+COIN,Coinbase Global Inc.
+PLTR,Palantir Technologies Inc.
+RBLX,Roblox Corporation
+HOOD,Robinhood Markets Inc.
+RIVN,Rivian Automotive Inc.
+LCID,Lucid Group Inc.
+NIO,NIO Inc.
+XPEV,XPeng Inc.
+LI,Li Auto Inc.
+SNOW,Snowflake Inc.
+CRWD,CrowdStrike Holdings Inc.
+ZS,Zscaler Inc.
+OKTA,Okta Inc.
+DDOG,Datadog Inc.
+NET,Cloudflare Inc.
+FSLY,Fastly Inc.
+TEAM,Atlassian Corporation
+WDAY,Workday Inc.
+NOW,ServiceNow Inc.
+SPLK,Splunk Inc.
+PANW,Palo Alto Networks Inc.
+FTNT,Fortinet Inc.
+CYBR,CyberArk Software Ltd.
+CMCSA,Comcast Corporation
+VZ,Verizon Communications Inc.
+T,AT&T Inc.
+TMUS,T-Mobile US Inc.
+CHTR,Charter Communications Inc.
+AMT,American Tower Corporation
+PLD,Prologis Inc.
+CCI,Crown Castle Inc.
+EQIX,Equinix Inc.
+PSA,Public Storage
+NEE,NextEra Energy Inc.
+SO,The Southern Company
+DUK,Duke Energy Corporation
+AEP,American Electric Power Company Inc.
+FCX,Freeport-McMoRan Inc.
+NUE,Nucor Corporation
+LIN,Linde plc
+APD,Air Products and Chemicals Inc.
+TSM,Taiwan Semiconductor Manufacturing Company Limited
+ASML,ASML Holding N.V.
+QCOM,QUALCOMM Incorporated
+AVGO,Broadcom Inc.
+TXN,Texas Instruments Incorporated
+MU,Micron Technology Inc.
+LRCX,Lam Research Corporation
+AMAT,Applied Materials Inc.
+KLAC,KLA Corporation
+MRNA,Moderna Inc.
+BNTX,BioNTech SE
+REGN,Regeneron Pharmaceuticals Inc.
+VRTX,Vertex Pharmaceuticals Incorporated
+ILMN,Illumina Inc.
+MSTR,MicroStrategy Incorporated
+SQ,Block Inc.
+RIOT,Riot Platforms Inc.
+MARA,Marathon Digital Holdings Inc.
+AMZN,Amazon.com Inc.
+ETSY,Etsy Inc.
+EBAY,eBay Inc.
+BABA,Alibaba Group Holding Limited
+JD,JD.com Inc.
+PDD,PDD Holdings Inc.
+UBER,Uber Technologies Inc.
+LYFT,Lyft Inc.
+DASH,DoorDash Inc.
+ABNB,Airbnb Inc.
+ATVI,Activision Blizzard Inc.
+EA,Electronic Arts Inc.
+TTWO,Take-Two Interactive Software Inc.
+RBLX,Roblox Corporation
+U,Unity Software Inc.
+VOO,Vanguard S&P 500 ETF
+VTI,Vanguard Total Stock Market ETF
+VXUS,Vanguard Total International Stock ETF
+VEA,Vanguard FTSE Developed Markets ETF
+VWO,Vanguard FTSE Emerging Markets ETF
+BND,Vanguard Total Bond Market ETF
+VNQ,Vanguard Real Estate ETF

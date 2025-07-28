@@ -13,6 +13,7 @@ from database import (
     add_to_watchlist, get_watchlist, remove_from_watchlist,
     add_to_portfolio, get_portfolio, update_portfolio_prices
 )
+from stock_symbols import search_stocks, get_symbol_suggestions, extract_symbol_from_suggestion
 
 # Initialize database
 init_database()
@@ -30,14 +31,53 @@ st.title("📈 Stock Analysis Dashboard")
 st.markdown("*Get comprehensive financial data and interactive charts for any stock symbol*")
 
 # Sidebar for inputs
-st.sidebar.header("Stock Selection")
+st.sidebar.header("🔍 Smart Stock Search")
 
-# Stock symbol input
-symbol = st.sidebar.text_input(
-    "Enter Stock Symbol",
-    value="AAPL",
-    help="Enter a valid stock ticker symbol (e.g., AAPL, GOOGL, TSLA)"
-).upper().strip()
+# Create a container for the search
+search_container = st.sidebar.container()
+
+with search_container:
+    # Text input for stock symbol
+    search_query = st.text_input(
+        "Search Stock Symbol or Company",
+        value="AAPL",
+        help="Type to search for stocks by symbol or company name",
+        key="stock_search"
+    )
+    
+    # Show suggestions if user is typing
+    if search_query and len(search_query) > 0:
+        suggestions = get_symbol_suggestions(search_query, max_suggestions=8)
+        
+        if suggestions:
+            st.write("**💡 Suggestions:**")
+            for i, suggestion in enumerate(suggestions):
+                if st.button(
+                    suggestion, 
+                    key=f"suggestion_{i}",
+                    help="Click to select this stock"
+                ):
+                    # Update the search query with selected suggestion
+                    st.session_state.stock_search = extract_symbol_from_suggestion(suggestion)
+                    st.rerun()
+        elif len(search_query) > 1:
+            # Show fuzzy matches if no exact suggestions
+            fuzzy_matches = search_stocks(search_query, limit=5)
+            if fuzzy_matches:
+                st.write("**🔍 Did you mean:**")
+                for symbol, company, score in fuzzy_matches:
+                    if st.button(
+                        f"{symbol} - {company}", 
+                        key=f"fuzzy_{symbol}",
+                        help=f"Match confidence: {score}%"
+                    ):
+                        st.session_state.stock_search = symbol
+                        st.rerun()
+            else:
+                st.warning("No matches found. Try a different search term.")
+
+# Extract the symbol from current search
+symbol = extract_symbol_from_suggestion(search_query).upper().strip()
 
 # Time period selection
 period_options = {
@@ -347,7 +387,37 @@ if symbol:
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    portfolio_symbol = st.text_input("Stock Symbol", placeholder="e.g., AAPL").upper()
+                    # Portfolio stock search with autocomplete
+                    portfolio_search = st.text_input(
+                        "Search Stock Symbol", 
+                        placeholder="Type to search...",
+                        key="portfolio_search"
+                    )
+                    
+                    # Show portfolio suggestions
+                    if portfolio_search and len(portfolio_search) > 0:
+                        portfolio_suggestions = get_symbol_suggestions(portfolio_search, max_suggestions=5)
+                        
+                        if portfolio_suggestions:
+                            portfolio_selected = st.selectbox(
+                                "Select Stock:",
+                                options=[""] + portfolio_suggestions,
+                                key="portfolio_select"
+                            )
+                            
+                            if portfolio_selected:
+                                portfolio_symbol = extract_symbol_from_suggestion(portfolio_selected).upper()
+                            else:
+                                portfolio_symbol = extract_symbol_from_suggestion(portfolio_search).upper()
+                        else:
+                            portfolio_symbol = portfolio_search.upper()
+                    else:
+                        portfolio_symbol = ""
+                    
+                    # Display selected symbol
+                    if portfolio_symbol:
+                        st.info(f"Selected: **{portfolio_symbol}**")
+                    
                     shares = st.number_input("Number of Shares", min_value=0.0, step=0.01)
                 
                 with col2:
