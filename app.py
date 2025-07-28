@@ -37,13 +37,21 @@ st.sidebar.header("🔍 Smart Stock Search")
 search_container = st.sidebar.container()
 
 with search_container:
+    # Initialize session state for selected stock
+    if 'selected_stock' not in st.session_state:
+        st.session_state.selected_stock = "AAPL"
+    
     # Text input for stock symbol
     search_query = st.text_input(
         "Search Stock Symbol or Company",
-        value="AAPL",
+        value="",
         help="Type to search for stocks by symbol or company name",
         key="stock_search"
     )
+    
+    # Show current selection
+    if st.session_state.selected_stock:
+        st.info(f"📊 Currently analyzing: **{st.session_state.selected_stock}**")
     
     # Show suggestions if user is typing
     if search_query and len(search_query) > 0:
@@ -57,8 +65,8 @@ with search_container:
                     key=f"suggestion_{i}",
                     help="Click to select this stock"
                 ):
-                    # Update the search query with selected suggestion
-                    st.session_state.stock_search = extract_symbol_from_suggestion(suggestion)
+                    # Update the selected stock
+                    st.session_state.selected_stock = extract_symbol_from_suggestion(suggestion)
                     st.rerun()
         elif len(search_query) > 1:
             # Show fuzzy matches if no exact suggestions
@@ -71,13 +79,26 @@ with search_container:
                         key=f"fuzzy_{symbol}",
                         help=f"Match confidence: {score}%"
                     ):
-                        st.session_state.stock_search = symbol
+                        st.session_state.selected_stock = symbol
                         st.rerun()
             else:
                 st.warning("No matches found. Try a different search term.")
+    
+    # Manual symbol entry option
+    manual_symbol = st.text_input(
+        "Or enter symbol directly:",
+        value="",
+        help="Enter a stock symbol manually (e.g., AAPL, TSLA)",
+        key="manual_symbol"
+    )
+    
+    if manual_symbol:
+        if st.button("Analyze This Stock", key="analyze_manual"):
+            st.session_state.selected_stock = manual_symbol.upper().strip()
+            st.rerun()
 
-# Extract the symbol from current search
-symbol = extract_symbol_from_suggestion(search_query).upper().strip()
+# Use the selected stock
+symbol = st.session_state.selected_stock
 
 # Time period selection
 period_options = {
@@ -394,29 +415,35 @@ if symbol:
                         key="portfolio_search"
                     )
                     
+                    # Initialize portfolio selected symbol
+                    if 'portfolio_symbol' not in st.session_state:
+                        st.session_state.portfolio_symbol = ""
+                    
                     # Show portfolio suggestions
                     if portfolio_search and len(portfolio_search) > 0:
                         portfolio_suggestions = get_symbol_suggestions(portfolio_search, max_suggestions=5)
                         
                         if portfolio_suggestions:
-                            portfolio_selected = st.selectbox(
-                                "Select Stock:",
-                                options=[""] + portfolio_suggestions,
-                                key="portfolio_select"
-                            )
-                            
-                            if portfolio_selected:
-                                portfolio_symbol = extract_symbol_from_suggestion(portfolio_selected).upper()
-                            else:
-                                portfolio_symbol = extract_symbol_from_suggestion(portfolio_search).upper()
-                        else:
-                            portfolio_symbol = portfolio_search.upper()
-                    else:
-                        portfolio_symbol = ""
+                            st.write("**Select from suggestions:**")
+                            for i, suggestion in enumerate(portfolio_suggestions):
+                                if st.button(
+                                    suggestion, 
+                                    key=f"portfolio_suggestion_{i}",
+                                    help="Click to select for portfolio"
+                                ):
+                                    st.session_state.portfolio_symbol = extract_symbol_from_suggestion(suggestion)
+                                    st.rerun()
+                    
+                    # Manual entry option
+                    if st.button("Use Manual Entry", key="portfolio_manual"):
+                        if portfolio_search:
+                            st.session_state.portfolio_symbol = portfolio_search.upper().strip()
+                            st.rerun()
                     
                     # Display selected symbol
+                    portfolio_symbol = st.session_state.portfolio_symbol
                     if portfolio_symbol:
-                        st.info(f"Selected: **{portfolio_symbol}**")
+                        st.success(f"Selected: **{portfolio_symbol}**")
                     
                     shares = st.number_input("Number of Shares", min_value=0.0, step=0.01)
                 
