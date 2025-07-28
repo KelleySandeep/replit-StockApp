@@ -677,123 +677,125 @@ if symbol:
             with col1:
                 st.write("**First Stock**")
                 
-                # Initialize session state for search
-                if 'compare_search1_input' not in st.session_state:
-                    st.session_state.compare_search1_input = ""
+                # Create a list of popular stocks for dropdown
+                popular_stocks = [
+                    "AAPL - Apple Inc.",
+                    "MSFT - Microsoft Corporation", 
+                    "GOOGL - Alphabet Inc.",
+                    "AMZN - Amazon.com Inc.",
+                    "TSLA - Tesla Inc.",
+                    "META - Meta Platforms Inc.",
+                    "NVDA - NVIDIA Corporation",
+                    "NFLX - Netflix Inc.",
+                    "AMD - Advanced Micro Devices",
+                    "INTC - Intel Corporation",
+                    "CRM - Salesforce Inc.",
+                    "ORCL - Oracle Corporation",
+                    "ADBE - Adobe Inc.",
+                    "PYPL - PayPal Holdings",
+                    "DIS - The Walt Disney Company",
+                    "BABA - Alibaba Group",
+                    "V - Visa Inc.",
+                    "MA - Mastercard Inc.",
+                    "JPM - JPMorgan Chase",
+                    "BAC - Bank of America"
+                ]
                 
-                compare_search1 = st.text_input(
-                    "Type symbol or company name",
-                    value=st.session_state.compare_search1_input,
-                    key="compare_search1_text",
-                    placeholder="e.g., AAPL or Apple",
-                    on_change=None
+                # Manual input option
+                manual_input1 = st.text_input(
+                    "Or type any stock symbol directly:",
+                    key="manual_stock1",
+                    placeholder="e.g., AAPL, MSFT, GOOGL"
                 )
                 
-                # Update session state
-                if compare_search1 != st.session_state.compare_search1_input:
-                    st.session_state.compare_search1_input = compare_search1
-                
-                # Show suggestions instantly without rerun
-                if compare_search1 and len(compare_search1.strip()) >= 1:
-                    # Check if direct symbol match first
-                    potential_symbol = compare_search1.upper().strip()
-                    if len(potential_symbol) <= 5 and potential_symbol.isalpha():
-                        # Likely a symbol, validate it
-                        if validate_symbol(potential_symbol):
-                            st.session_state.compare_stock1 = potential_symbol
-                            st.success(f"✓ {potential_symbol} ready for comparison")
-                        else:
-                            # Show suggestions
-                            with st.container():
-                                suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=3)
-                                if suggestions1:
-                                    st.write("**Suggestions:**")
-                                    for i, suggestion in enumerate(suggestions1):
-                                        if st.button(f"📈 {suggestion}", key=f"comp1_btn_{i}", use_container_width=True):
-                                            symbol = extract_symbol_from_suggestion(suggestion)
-                                            st.session_state.compare_stock1 = symbol
-                                            st.session_state.compare_search1_input = symbol
-                                            st.rerun()
+                if manual_input1:
+                    symbol = manual_input1.upper().strip()
+                    if validate_symbol(symbol):
+                        st.session_state.compare_stock1 = symbol
+                        st.success(f"✅ {symbol} selected")
                     else:
-                        # Company name search
-                        with st.container():
-                            suggestions1 = get_symbol_suggestions(compare_search1, max_suggestions=3)
-                            if suggestions1:
-                                st.write("**Suggestions:**")
-                                for i, suggestion in enumerate(suggestions1):
-                                    if st.button(f"📈 {suggestion}", key=f"comp1_btn_{i}", use_container_width=True):
-                                        symbol = extract_symbol_from_suggestion(suggestion)
-                                        st.session_state.compare_stock1 = symbol
-                                        st.session_state.compare_search1_input = symbol
-                                        st.rerun()
+                        st.warning(f"'{symbol}' is not a valid stock symbol")
+                
+                # Dropdown for popular stocks
+                selected_stock1 = st.selectbox(
+                    "Choose from popular stocks:",
+                    options=[""] + popular_stocks,
+                    key="dropdown_stock1",
+                    format_func=lambda x: "Select a stock..." if x == "" else x
+                )
+                
+                if selected_stock1:
+                    symbol = selected_stock1.split(" - ")[0]
+                    st.session_state.compare_stock1 = symbol
+                    st.success(f"✅ {symbol} selected")
                 
                 # Show current selection
-                if st.session_state.compare_stock1 and st.session_state.compare_stock1 != compare_search1:
-                    st.success(f"✅ Selected: {st.session_state.compare_stock1}")
-                    if st.button("Change Stock 1", key="change_stock1"):
+                if st.session_state.compare_stock1:
+                    st.info(f"Ready: {st.session_state.compare_stock1}")
+                    if st.button("Clear Stock 1", key="clear_stock1"):
                         st.session_state.compare_stock1 = ""
-                        st.session_state.compare_search1_input = ""
                         st.rerun()
             
             with col2:
                 st.write("**Second Stock**")
                 
-                # Initialize session state for search
-                if 'compare_search2_input' not in st.session_state:
-                    st.session_state.compare_search2_input = ""
+                # Create same list of popular stocks for dropdown
+                popular_stocks = [
+                    "AAPL - Apple Inc.",
+                    "MSFT - Microsoft Corporation", 
+                    "GOOGL - Alphabet Inc.",
+                    "AMZN - Amazon.com Inc.",
+                    "TSLA - Tesla Inc.",
+                    "META - Meta Platforms Inc.",
+                    "NVDA - NVIDIA Corporation",
+                    "NFLX - Netflix Inc.",
+                    "AMD - Advanced Micro Devices",
+                    "INTC - Intel Corporation",
+                    "CRM - Salesforce Inc.",
+                    "ORCL - Oracle Corporation",
+                    "ADBE - Adobe Inc.",
+                    "PYPL - PayPal Holdings",
+                    "DIS - The Walt Disney Company",
+                    "BABA - Alibaba Group",
+                    "V - Visa Inc.",
+                    "MA - Mastercard Inc.",
+                    "JPM - JPMorgan Chase",
+                    "BAC - Bank of America"
+                ]
                 
-                compare_search2 = st.text_input(
-                    "Type symbol or company name",
-                    value=st.session_state.compare_search2_input,
-                    key="compare_search2_text",
-                    placeholder="e.g., MSFT or Microsoft",
-                    on_change=None
+                # Manual input option
+                manual_input2 = st.text_input(
+                    "Or type any stock symbol directly:",
+                    key="manual_stock2",
+                    placeholder="e.g., AAPL, MSFT, GOOGL"
                 )
                 
-                # Update session state
-                if compare_search2 != st.session_state.compare_search2_input:
-                    st.session_state.compare_search2_input = compare_search2
-                
-                # Show suggestions instantly without rerun
-                if compare_search2 and len(compare_search2.strip()) >= 1:
-                    # Check if direct symbol match first
-                    potential_symbol = compare_search2.upper().strip()
-                    if len(potential_symbol) <= 5 and potential_symbol.isalpha():
-                        # Likely a symbol, validate it
-                        if validate_symbol(potential_symbol):
-                            st.session_state.compare_stock2 = potential_symbol
-                            st.success(f"✓ {potential_symbol} ready for comparison")
-                        else:
-                            # Show suggestions
-                            with st.container():
-                                suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=3)
-                                if suggestions2:
-                                    st.write("**Suggestions:**")
-                                    for i, suggestion in enumerate(suggestions2):
-                                        if st.button(f"📈 {suggestion}", key=f"comp2_btn_{i}", use_container_width=True):
-                                            symbol = extract_symbol_from_suggestion(suggestion)
-                                            st.session_state.compare_stock2 = symbol
-                                            st.session_state.compare_search2_input = symbol
-                                            st.rerun()
+                if manual_input2:
+                    symbol = manual_input2.upper().strip()
+                    if validate_symbol(symbol):
+                        st.session_state.compare_stock2 = symbol
+                        st.success(f"✅ {symbol} selected")
                     else:
-                        # Company name search
-                        with st.container():
-                            suggestions2 = get_symbol_suggestions(compare_search2, max_suggestions=3)
-                            if suggestions2:
-                                st.write("**Suggestions:**")
-                                for i, suggestion in enumerate(suggestions2):
-                                    if st.button(f"📈 {suggestion}", key=f"comp2_btn_{i}", use_container_width=True):
-                                        symbol = extract_symbol_from_suggestion(suggestion)
-                                        st.session_state.compare_stock2 = symbol
-                                        st.session_state.compare_search2_input = symbol
-                                        st.rerun()
+                        st.warning(f"'{symbol}' is not a valid stock symbol")
+                
+                # Dropdown for popular stocks
+                selected_stock2 = st.selectbox(
+                    "Choose from popular stocks:",
+                    options=[""] + popular_stocks,
+                    key="dropdown_stock2",
+                    format_func=lambda x: "Select a stock..." if x == "" else x
+                )
+                
+                if selected_stock2:
+                    symbol = selected_stock2.split(" - ")[0]
+                    st.session_state.compare_stock2 = symbol
+                    st.success(f"✅ {symbol} selected")
                 
                 # Show current selection
-                if st.session_state.compare_stock2 and st.session_state.compare_stock2 != compare_search2:
-                    st.success(f"✅ Selected: {st.session_state.compare_stock2}")
-                    if st.button("Change Stock 2", key="change_stock2"):
+                if st.session_state.compare_stock2:
+                    st.info(f"Ready: {st.session_state.compare_stock2}")
+                    if st.button("Clear Stock 2", key="clear_stock2"):
                         st.session_state.compare_stock2 = ""
-                        st.session_state.compare_search2_input = ""
                         st.rerun()
             
             # Duration selection for comparison
@@ -964,11 +966,9 @@ if symbol:
                 # Clear selections button
                 if st.session_state.compare_stock1 or st.session_state.compare_stock2:
                     st.divider()
-                    if st.button("🗑️ Clear All Selections", type="secondary"):
+                    if st.button("🗑️ Clear Both Selections", type="secondary"):
                         st.session_state.compare_stock1 = ""
                         st.session_state.compare_stock2 = ""
-                        st.session_state.compare_search1_input = ""
-                        st.session_state.compare_search2_input = ""
                         st.rerun()
     
     except Exception as e:
